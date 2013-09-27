@@ -1,9 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Mediator test</title>
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js" type="text/javascript"></script>
+    <script src="../js/mediator.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $( "#chatForm" ).on( "submit", function(e) {
+                e.preventDefault();
+
+                // Collect the details of the chat from our UI
+                var text = $( "#chatBox" ).val(),
+                        from = $( "#fromBox" ).val(),
+                        to = $( "#toBox" ).val();
+
+                // Publish data from the chat to the newMessage topic
+                Mediator.Publish( "newMessage" , { message: text, from: from, to: to } );
+            });
+
+// Append new messages as they come through
+            function displayChat( data ) {
+                var date = new Date(),
+                        msg = data.from + " said \"" + data.message + "\" to " + data.to;
+
+                $( "#chatResult" )
+                        .prepend("<p>" + msg + " (" + date.toLocaleTimeString() + ")</p>");
+            }
+
+// Log messages
+            function logChat( data ) {
+                if ( window.console ) {
+                    console.log( data );
+                }
+            }
+
+
+
+// Subscribe to new chat messages being submitted
+// via the mediator
+            Mediator.Subscribe( "newMessage", displayChat );
+            Mediator.Subscribe( "newMessage", logChat );
+
+
+// The following will however only work with the more advanced implementation:
+
+            function amITalkingToMyself( data ) {
+                return data.from === data.to;
+            }
+
+            function iAmClearlyCrazy( data ) {
+                $( "#chatResult" ).prepend("<p>" + data.from + " is talking to himself.</p>");
+            }
+
+        })
+    </script>
 </head>
 <body>
+<h1>Chat</h1>
+<form id="chatForm">
+    <label for="fromBox">Your Name:</label>
+    <input id="fromBox" type="text"/>
+    <br />
+    <label for="toBox">Send to:</label>
+    <input id="toBox" type="text"/>
+    <br />
+    <label for="chatBox">Message:</label>
+    <input id="chatBox" type="text"/>
+    <button type="submit">Chat</button>
+</form>
 
+<div id="chatResult"></div>
 </body>
 </html>
